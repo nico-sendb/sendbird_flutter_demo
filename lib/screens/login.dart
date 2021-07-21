@@ -1,34 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:sendbird_sdk/sendbird_sdk.dart' as Sendbird;
+import 'package:sendbird_flutter_demo/utils.dart';
 
 import 'channel_list.dart';
-
-final sendbird =
-    Sendbird.SendbirdSdk(appId: 'AFE50EBE-483A-4B80-9DA3-31C500543288');
-
-Future<Sendbird.User> connect(String userId, {String? nickname = ''}) async {
-  if (userId == '') {
-    throw ("No user ID was provided.");
-  }
-
-  try {
-    final user = await sendbird.connect(userId);
-    final updatedNickname = nickname == ''
-        ? user.nickname == ''
-            ? userId
-            : null
-        : nickname;
-    if (updatedNickname != null) {
-      sendbird.updateCurrentUserInfo(nickname: updatedNickname);
-    }
-    return user;
-  } catch (e) {
-    log(e.toString());
-    throw e;
-  }
-}
 
 class LoginPage extends StatefulWidget {
   LoginPage() : super();

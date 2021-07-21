@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:sendbird_flutter_demo/screens/login.dart';
+import 'package:sendbird_flutter_demo/main.dart';
 import 'package:sendbird_sdk/sendbird_sdk.dart' as Sendbird;
 
 import '../utils.dart';
@@ -210,7 +210,7 @@ class _ChannelChatPageState extends State<ChannelChatPage>
                         headerBuilder:
                             (BuildContext context, bool isExpanded) => ListTile(
                                   leading: Icon(Icons.people),
-                                  title: Text('Members'),
+                                  title: Text('${members.length} Members'),
                                 ),
                         body: Column(
                           children: getMembersList(members,
@@ -238,7 +238,10 @@ class _ChannelChatPageState extends State<ChannelChatPage>
                                         _messages![index], context,
                                         margin: EdgeInsets.only(bottom: 10),
                                         userId: userId,
-                                        userNickname: userNickname);
+                                        userNickname: userNickname,
+                                        previousMessage: index > 0
+                                            ? _messages![index - 1]
+                                            : null);
                                   },
                                 )
                               : Center(
@@ -289,13 +292,14 @@ class _ChannelChatPageState extends State<ChannelChatPage>
 
 class ChatMessage extends Container {
   final Sendbird.BaseMessage message;
+  final Sendbird.BaseMessage? previousMessage;
   final BuildContext context;
   final margin;
   final userId;
   final userNickname;
 
   ChatMessage(this.message, this.context,
-      {this.margin, this.userId, this.userNickname});
+      {this.margin, this.userId, this.userNickname, this.previousMessage});
 
   @override
   Widget get child {
@@ -322,7 +326,10 @@ class ChatMessage extends Container {
         textDirection: textDirection,
         mainAxisAlignment: alignment,
         children: [
-          getChatMessageUserAvatar(message),
+          (message.sender?.userId != userId &&
+                  (previousMessage?.sender?.userId != message.sender?.userId))
+              ? getChatMessageUserAvatar(message)
+              : Padding(padding: EdgeInsets.only(left: 45)),
           Container(
             decoration: BoxDecoration(
                 color: backgroundColor,

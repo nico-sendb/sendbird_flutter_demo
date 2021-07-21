@@ -1,5 +1,29 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:sendbird_flutter_demo/main.dart';
 import 'package:sendbird_sdk/sendbird_sdk.dart' as Sendbird;
+
+Future<Sendbird.User> connect(String userId, {String? nickname = ''}) async {
+  if (userId == '') {
+    throw ("No user ID was provided.");
+  }
+
+  try {
+    final user = await sendbird.connect(userId);
+    final updatedNickname = nickname == ''
+        ? user.nickname == ''
+            ? userId
+            : null
+        : nickname;
+    if (updatedNickname != null) {
+      sendbird.updateCurrentUserInfo(nickname: updatedNickname);
+    }
+    return user;
+  } catch (e) {
+    log(e.toString());
+    throw e;
+  }
+}
 
 String getChannelTitleString(Sendbird.GroupChannel channel) {
   String title;
