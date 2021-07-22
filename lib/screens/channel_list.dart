@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sendbird_flutter_demo/main.dart';
 import 'package:sendbird_flutter_demo/screens/channel_chat.dart';
 import 'package:sendbird_flutter_demo/utils.dart';
 import 'package:sendbird_sdk/sendbird_sdk.dart' as Sendbird;
+
+const CHANNEL_LIST_EVENT_HANDLER = 'CHANNEL_LIST_EVENT_HANDLER';
 
 class ChannelListPage extends StatefulWidget {
   final String userId;
@@ -24,6 +27,16 @@ class _ChannelListPageState extends State<ChannelListPage>
   List<Sendbird.GroupChannel>? channels;
 
   _ChannelListPageState(this._userId, this._userNickname) {
+    retrieveUserChannels();
+    sendbird.addChannelEventHandler(CHANNEL_LIST_EVENT_HANDLER, this);
+  }
+
+  @override
+  void onMessageReceived(
+      Sendbird.BaseChannel _channel, Sendbird.BaseMessage message) {
+    setState(() {
+      _isLoading = true;
+    });
     retrieveUserChannels();
   }
 
@@ -66,7 +79,7 @@ class _ChannelListPageState extends State<ChannelListPage>
     }
   }
 
-  Future<Sendbird.BaseChannel?> createNewChannel(
+  Future<Sendbird.GroupChannel?> createNewChannel(
       List<Sendbird.User> users, String name) async {
     try {
       List<String> userIds =
@@ -84,67 +97,73 @@ class _ChannelListPageState extends State<ChannelListPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Channel List page'),
-          actions: [
-            IconButton(
-              onPressed: () async {
-                List<Sendbird.User> users = await retrieveAllUsers();
-                var results = await showDialog(
-                    context: context,
-                    builder: (BuildContext context) => UsersListDialog(users));
-                if (results == null) {
-                  // dialog has been dismissed
-                  return;
-                }
-                List<Sendbird.User> selectedUsers = results[0];
-                String groupName = results[1];
-                Sendbird.BaseChannel? channel =
-                    await createNewChannel(selectedUsers, groupName);
-                if (channel != null) {
-                  // navigate to the newly created channel
-                  Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChannelChatPage(
-                                  channel: channel as Sendbird.GroupChannel,
-                                  userId: _userId,
-                                  userNickname: _userNickname)))
-                      .whenComplete(retrieveUserChannels);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content:
-                          Text('There was an error. Please try again later.')));
-                }
-              },
-              tooltip: 'Create a new channel',
-              icon: Icon(Icons.add_box),
-            )
-          ],
-        ),
-        body: Center(
-            child: (channels != null && channels!.length > 0)
-                ? ListView.builder(
-                    itemCount: channels?.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ChannelListItem(
-                          context: context,
-                          channel: channels![index],
-                          userId: _userId,
-                          userNickname: _userNickname,
-                          retrieveUserChannels: retrieveUserChannels);
-                    },
-                  )
-                : _isLoading
-                    ? CircularProgressIndicator()
-                    : Container(
-                        padding: EdgeInsets.all(50),
-                        child: Text(
-                          'No channels where found. Use the button on the top right corner to create a new channel.',
-                          textAlign: TextAlign.center,
-                        ),
-                      )));
+    return WillPopScope(
+        onWillPop: () async {
+          sendbird.removeChannelEventHandler(CHANNEL_LIST_EVENT_HANDLER);
+          return true;
+        },
+        child: Scaffold(
+            appBar: AppBar(
+              title: Text('Channel List page'),
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    List<Sendbird.User> users = await retrieveAllUsers();
+                    var results = await showDialog(
+                        context: context,
+                        builder: (BuildContext context) =>
+                            UsersListDialog(users));
+                    if (results == null) {
+                      // dialog has been dismissed
+                      return;
+                    }
+                    List<Sendbird.User> selectedUsers = results[0];
+                    String groupName = results[1];
+                    Sendbird.GroupChannel? channel =
+                        await createNewChannel(selectedUsers, groupName);
+                    if (channel != null) {
+                      // navigate to the newly created channel
+                      Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChannelChatPage(
+                                      channel: channel,
+                                      userId: _userId,
+                                      userNickname: _userNickname)))
+                          .whenComplete(retrieveUserChannels);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'There was an error. Please try again later.')));
+                    }
+                  },
+                  tooltip: 'Create a new channel',
+                  icon: Icon(Icons.add_box),
+                )
+              ],
+            ),
+            body: Center(
+                child: (channels != null && channels!.length > 0)
+                    ? ListView.builder(
+                        itemCount: channels?.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return ChannelListItem(
+                              context: context,
+                              channel: channels![index],
+                              userId: _userId,
+                              userNickname: _userNickname,
+                              retrieveUserChannels: retrieveUserChannels);
+                        },
+                      )
+                    : _isLoading
+                        ? CircularProgressIndicator()
+                        : Container(
+                            padding: EdgeInsets.all(50),
+                            child: Text(
+                              'No channels where found. Use the button on the top right corner to create a new channel.',
+                              textAlign: TextAlign.center,
+                            ),
+                          ))));
   }
 }
 
@@ -172,14 +191,17 @@ class ChannelListItem extends Container {
             leading: getChannelThumbnail(channel),
             trailing: getUnreadMessageCount(channel),
             isThreeLine: true,
-            onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ChannelChatPage(
-                            channel: channel,
-                            userId: userId,
-                            userNickname: userNickname)))
-                .whenComplete(retrieveUserChannels)));
+            onTap: () {
+              sendbird.removeChannelEventHandler(CHANNEL_LIST_EVENT_HANDLER);
+              Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ChannelChatPage(
+                              channel: channel,
+                              userId: userId,
+                              userNickname: userNickname)))
+                  .whenComplete(retrieveUserChannels);
+            }));
   }
 }
 

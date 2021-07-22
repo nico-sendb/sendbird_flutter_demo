@@ -41,12 +41,16 @@ class _ChannelChatPageState extends State<ChannelChatPage>
     members = channel.members;
     getPreviousMessages();
     sendbird.addChannelEventHandler(CHANNEL_EVENT_HANDLER, this);
-    sendbird.markAsRead(channelUrls: [channel.channelUrl]);
+    channel.markAsRead();
   }
 
   @override
-  onMessageReceived(
-      Sendbird.BaseChannel channel, Sendbird.BaseMessage message) {
+  void onMessageReceived(
+      Sendbird.BaseChannel _channel, Sendbird.BaseMessage message) {
+    if (message.sender!.isBlockedByMe ||
+        _channel.channelUrl != channel.channelUrl) {
+      return;
+    }
     setState(() {
       if (_messages == null) {
         _messages = [message];
@@ -59,9 +63,24 @@ class _ChannelChatPageState extends State<ChannelChatPage>
   /* https://sendbird.com/docs/chat/v3/flutter/guides/event-handler */
   /* https://sendbird.com/docs/chat/v3/flutter/guides/group-channel-advanced#2-send-typing-indicators-to-other-members */
   @override
-  void onTypingStatusUpdated(Sendbird.GroupChannel channel) {
+  void onTypingStatusUpdated(Sendbird.GroupChannel _channel) {
+    if (_channel.channelUrl != channel.channelUrl) {
+      return;
+    }
     setState(() {
-      _typingUsers = channel.getTypingUsers();
+      List<Sendbird.User> typingUsers = _channel.getTypingUsers();
+      // ! Performance issue: O(n^2) time needed for finding Users that are blocked Members
+      // Fix by either returning List<Members> from the getTypingUsers method
+      // Or create a hashmap with all blocked members in this Widget's state
+      List<Sendbird.User> typingNonBlockedUsers = typingUsers
+          .where((user) =>
+              members
+                  .where((member) =>
+                      member.userId == user.userId && !member.isBlockedByMe)
+                  .length >
+              0)
+          .toList();
+      _typingUsers = typingNonBlockedUsers;
     });
   }
 
@@ -158,6 +177,7 @@ class _ChannelChatPageState extends State<ChannelChatPage>
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
+          channel.markAsRead();
           if (_isTyping) {
             channel.endTyping();
           }
@@ -303,6 +323,9 @@ class ChatMessage extends Container {
 
   @override
   Widget get child {
+    if (message is Sendbird.FileMessage) {
+      return Text('file message');
+    }
     var alignment = MainAxisAlignment.start;
     var backgroundColor = Theme.of(context).primaryColor;
     var textColor = Colors.white;

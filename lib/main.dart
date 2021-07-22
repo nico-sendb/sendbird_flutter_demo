@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:sendbird_flutter_demo/screens/channel_list.dart';
 import 'package:sendbird_flutter_demo/screens/login.dart';
 import 'package:sendbird_sdk/sendbird_sdk.dart' as Sendbird;
 
@@ -22,7 +21,6 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         var routes = <String, WidgetBuilder>{
           '/': (context) => LoginPage(),
-          // '/channel_list': (context) => ChannelListPage()
         };
         WidgetBuilder builder = routes[settings.name]!;
         return MaterialPageRoute(
