@@ -79,6 +79,15 @@ class _ChannelListPageState extends State<ChannelListPage>
     }
   }
 
+  String getNewChannelTitleFallback(userIds) {
+    StringBuffer membersTitle = StringBuffer();
+    membersTitle.write(_userId);
+    userIds.forEach((userId) {
+      membersTitle.write(' / ' + userId);
+    });
+    return membersTitle.toString();
+  }
+
   Future<Sendbird.GroupChannel?> createNewChannel(
       List<Sendbird.User> users, String name) async {
     try {
@@ -86,7 +95,8 @@ class _ChannelListPageState extends State<ChannelListPage>
           users.map<String>((user) => user.userId.toString()).toList();
       final params = Sendbird.GroupChannelParams()
         ..userIds = userIds
-        ..name = name;
+        ..isDistinct = true
+        ..name = name == '' ? getNewChannelTitleFallback(userIds) : name;
       final channel = await Sendbird.GroupChannel.createChannel(params);
       return channel;
     } catch (_e) {
