@@ -47,7 +47,8 @@ class _ChannelChatPageState extends State<ChannelChatPage>
   @override
   void onMessageReceived(
       Sendbird.BaseChannel _channel, Sendbird.BaseMessage message) {
-    if (message.sender!.isBlockedByMe ||
+    if ((message.sender!.isBlockedByMe &&
+            !(message is Sendbird.AdminMessage)) ||
         _channel.channelUrl != channel.channelUrl) {
       return;
     }

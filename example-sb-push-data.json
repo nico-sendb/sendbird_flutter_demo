@@ -1,0 +1,38 @@
+{
+  "sendbird": {
+    "custom_type": "",
+    "channel": {
+      "custom_type": "",
+      "name": "test11",
+      "channel_url": "sendbird_group_channel_100847000_d9dceb57c7ae2e00d746b2a7d438159c21b78dbd"
+    },
+    "created_at": 1629814052757,
+    "message_id": 1199376084,
+    "message": "test",
+    "type": "MESG",
+    "unread_message_count": 55,
+    "push_title": null,
+    "audience_type": "only",
+    "sender": {
+      "require_auth_for_profile_image": false,
+      "profile_url": "https:\/\/file-eu-1.sendbird.com\/profile_images\/ca3e4844df3b4c7e83bd172618ddae63.jpg",
+      "name": "Charis",
+      "id": "866345"
+    },
+    "push_sound": "default",
+    "translations": {},
+    "recipient": {
+      "name": "User 8",
+      "push_template": "default",
+      "id": "user8"
+    },
+    "session_key": {
+      "topics": [
+        "delivery_receipt"
+      ],
+      "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyOCIsImFwcCI6IkFGRTUwRUJFLTQ4M0EtNEI4MC05REEzLTMxQzUwMDU0MzI4OCIsImp0aSI6IjJkMjUyMWJlMDg5OTRmMzNiNDNiNWUzNjk4ZWU0NDMwIiwiZXhwIjoxNjI5ODE0NjUyLCJpYXQiOjE2Mjk4MTQwNTIsInRvcGljcyI6WyJkZWxpdmVyeV9yZWNlaXB0Il19.63NQyPG9OXNYyplfjr3o2CIZ6F4ionnlB5LeotWBYK0"
+    },
+    "files": [],
+    "category": "messaging:offline"
+  }
+}

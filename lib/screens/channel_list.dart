@@ -1,5 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sendbird_flutter_demo/Firebase.dart';
 import 'package:sendbird_flutter_demo/main.dart';
 import 'package:sendbird_flutter_demo/screens/channel_chat.dart';
 import 'package:sendbird_flutter_demo/utils.dart';
@@ -23,12 +25,15 @@ class _ChannelListPageState extends State<ChannelListPage>
   final String _userId;
   final String? _userNickname;
   bool _isLoading = true;
+  late Future<FirebaseMessaging> messaging;
 
   List<Sendbird.GroupChannel>? channels;
 
   _ChannelListPageState(this._userId, this._userNickname) {
     retrieveUserChannels();
     sendbird.addChannelEventHandler(CHANNEL_LIST_EVENT_HANDLER, this);
+    FirebasePush firebase = FirebasePush();
+    this.messaging = firebase.messaging;
   }
 
   @override
