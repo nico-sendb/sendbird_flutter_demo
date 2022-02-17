@@ -19,9 +19,9 @@ Future<Sendbird.User> connect(String userId, {String? nickname = ''}) async {
       sendbird.updateCurrentUserInfo(nickname: updatedNickname);
     }
     return user;
-  } catch (e) {
-    log(e.toString());
-    throw e;
+  } catch (error) {
+    log(userId);
+    throw error;
   }
 }
 
